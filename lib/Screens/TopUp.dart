@@ -19,15 +19,173 @@ class _TopUP extends State<TopUp> {
 
   @override
   void initState() {
-
+    _getUsersCredits();
     super.initState();
   }
 
   int _value = 0;
+  List users = List();
+  var currentCred = 0 ;
+  var credits = 0;
 
+  final AmountController = TextEditingController();
+  final YearController = TextEditingController();
+  final nameController = TextEditingController();
+  final cardNoController = TextEditingController();
+  final csvController = TextEditingController();
+  final monthController = TextEditingController();
+  var enteredAmount = 0;
+
+  _displayDialogBoxSec(BuildContext context) async {
+    onClickUpdate();
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.circular(20.0)), //this right here
+            child: Container(
+              height:200,
+              child: Padding(
+                padding: const EdgeInsets.all(0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                        height: 60,
+                        width: 350,
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Color.fromARGB(255, 115, 71, 108)),
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(20.0),
+                                topRight: Radius.circular(20.0)),
+                            boxShadow: [
+                              BoxShadow(color: Color.fromARGB(255, 115, 71, 108))
+                            ]
+                        ),
+                        child:Center(
+                            child:Text('Top up account',style: TextStyle(color: Colors.white,fontSize: 20),textAlign: TextAlign.center,)
+                        )
+                    ),
+
+                    Container(
+                        margin: EdgeInsets.only(left: 40,top: 30),
+                        child:
+                        Text("Rs. "+ AmountController.text+ " is added to the account!",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold))),
+
+                    Container(
+                        margin: EdgeInsets.only(left: 90,top: 20),
+                        child: ButtonBar(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            ButtonTheme(
+                              minWidth: 130,
+                              child: RaisedButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(100),
+                                  side: BorderSide(color:  Color.fromARGB(255, 182, 82, 80)),
+                                ),
+                                color:  Color.fromARGB(255, 182, 82, 80),
+                                textColor: Colors.white,
+                                child: new Text('OK'),
+                                onPressed: ()=>_success(context),
+                              ),
+                            )
+                          ],
+                        )
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
+  }
+
+  _success(BuildContext context) async{
+    Navigator.pop(context);
+    onClickUpdate();
+    _ResetButton();
+  }
+
+  void _ResetButton(){
+    setState(() {
+      AmountController.text="";
+       YearController.text="";
+      nameController.text="";
+      cardNoController.text="";
+       csvController.text="";
+      monthController.text="";
+    });
+  }
+  onClickUpdate(){
+    enteredAmount = int.parse(AmountController.text);
+    if(enteredAmount != null && currentCred != 0){
+      credits = currentCred + enteredAmount;
+      if(credits != 0 ){
+        _TopUPAccount(credits);
+      }
+    }
+
+  }
+  void _getUsersCredits() async{
+    final response =  await http.get("http://10.0.2.2:8000/user/");
+    if (response.statusCode == 200) {
+      users = json.decode(response.body) as List;
+      }
+    else {
+      throw Exception('Failed to load data');
+    }
+  }
+
+  void _getCred(){
+    if(users.length !=0){
+      for(var i = 0 ; i < users.length;i++){
+        if(users[i]['_id'] == "5f6754a91cc10b4a5c380ba7") {
+          print(users[i]['history']);
+          currentCred = users[i]['Credits'];
+        }
+      }
+    }
+  }
+
+
+
+  Future<http.Response> _TopUPAccount(int cred) async {
+    String url =
+        'http://10.0.2.2:8000/user/updateCredit/5f6754a91cc10b4a5c380ba7';
+    Map map = {
+      'Credits': cred,
+    };
+    _displayDialogBoxSec;
+    print(await apiRequest(url, map));
+
+
+  }
+
+  Future<String> apiRequest(String url, Map jsonMap) async {
+    HttpClient httpClient = new HttpClient();
+    HttpClientRequest request = await httpClient.postUrl(Uri.parse(url));
+    request.headers.set('content-type', 'application/json');
+    request.add(utf8.encode(json.encode(jsonMap)));
+    HttpClientResponse response = await request.close();
+    // todo - you should check the response.statusCode
+    String reply = await response.transform(utf8.decoder).join();
+    httpClient.close();
+    return reply;
+  }
 
   @override
   Widget build(BuildContext context) {
+    _getCred();
+    if(currentCred != 0 ){
+      print(currentCred);
+
+
+    }
+
     // TODO: implement build
     return Scaffold(
         drawer: NavDrawer(),
@@ -47,7 +205,13 @@ class _TopUP extends State<TopUp> {
 //        title: Text('TicketingApp'),
 
         ),
-        body: Column(
+        body: Container(
+        margin: const EdgeInsets.only(top: 0),
+        padding: EdgeInsets.symmetric(horizontal: 0),
+        child: SingleChildScrollView(
+         child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 decoration: new BoxDecoration(
@@ -115,7 +279,9 @@ class _TopUP extends State<TopUp> {
                   margin: EdgeInsets.only(left: 25),
               width: 150,
                   child:TextField
-                    (decoration: InputDecoration(
+                    (
+                    controller: AmountController,
+                    decoration: InputDecoration(
                     border:  const OutlineInputBorder(
                       borderRadius: const BorderRadius.all(
                         const Radius.circular(20.0),
@@ -167,7 +333,8 @@ class _TopUP extends State<TopUp> {
                     margin: EdgeInsets.only(left: 10,top: 10),
                     width: 300,
                     child:TextField
-                      (decoration: InputDecoration(
+                      (controller: nameController,
+                      decoration: InputDecoration(
                       border:  const OutlineInputBorder(
                         borderRadius: const BorderRadius.all(
                           const Radius.circular(20.0),
@@ -181,12 +348,14 @@ class _TopUP extends State<TopUp> {
                     margin: EdgeInsets.only(left: 10,top: 10),
                     width: 300,
                     child:TextField
-                      (decoration: InputDecoration(
+                      (controller: cardNoController,
+                      decoration: InputDecoration(
                       border:  const OutlineInputBorder(
                         borderRadius: const BorderRadius.all(
                           const Radius.circular(20.0),
                         ),
                       ),
+
                       hintText: 'Card number',
                     ),
                     )
@@ -197,7 +366,8 @@ class _TopUP extends State<TopUp> {
                         margin: EdgeInsets.only(left: 60,top: 10),
                         width: 80,
                         child:TextField
-                          (decoration: InputDecoration(
+                          (controller: csvController,
+                          decoration: InputDecoration(
                           border:  const OutlineInputBorder(
                             borderRadius: const BorderRadius.all(
                               const Radius.circular(20.0),
@@ -211,7 +381,8 @@ class _TopUP extends State<TopUp> {
                         margin: EdgeInsets.only(left: 25,top: 10),
                         width: 80,
                         child:TextField
-                          (decoration: InputDecoration(
+                          (controller: monthController,
+                          decoration: InputDecoration(
                           border:  const OutlineInputBorder(
                             borderRadius: const BorderRadius.all(
                               const Radius.circular(20.0),
@@ -225,7 +396,8 @@ class _TopUP extends State<TopUp> {
                         margin: EdgeInsets.only(left: 25,top: 10),
                         width: 80,
                         child:TextField
-                          (decoration: InputDecoration(
+                          (controller: YearController,
+                          decoration: InputDecoration(
                           border:  const OutlineInputBorder(
                             borderRadius: const BorderRadius.all(
                               const Radius.circular(20.0),
@@ -246,7 +418,7 @@ class _TopUP extends State<TopUp> {
               Container(
                 height: 50.0,
                 child: RaisedButton(
-                  onPressed: () => {},
+                  onPressed: ()=>_displayDialogBoxSec(context),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(80.0)),
                   padding: EdgeInsets.all(0.0),
@@ -284,6 +456,8 @@ class _TopUP extends State<TopUp> {
 
             ]
         )
+    )
+    )
     );
   }
 }

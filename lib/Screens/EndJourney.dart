@@ -49,13 +49,7 @@ class _EndPoint extends State <EndPointC>{
     await _fetchUser();
   }
 
-//  final String apiUrl = "http://localhost:8000/busStand/";
-//  Future<List<dynamic>> fetchUsers() async {
-//
-//    var result = await http.get(apiUrl);
-//    return json.decode(result.body)['busStand'];
-//
-//  }
+
 
   void _fetchUser() async{
     final response =  await http.get("http://10.0.2.2:8000/user/");
@@ -132,7 +126,7 @@ class _EndPoint extends State <EndPointC>{
 
   Future<http.Response> EndJourney(int cred,int fare, String end) async {
       String url =
-          'http://10.0.2.2:8000/user/updateCredit/5f6783a8512ffc61d4dc2ac2';
+          'http://10.0.2.2:8000/user/updateCredit/5f6754a91cc10b4a5c380ba7';
       Map map = {
         'Credits': cred,
       };
@@ -143,22 +137,10 @@ class _EndPoint extends State <EndPointC>{
       String HisURL =
       'http://10.0.2.2:8000/user/pushHistory';
       Map body = {
-        '_id':'5f6783a8512ffc61d4dc2ac2',
+        '_id':'5f6754a91cc10b4a5c380ba7',
         'history':[{"Start":widget.sPoint,"End":end, "Fare": fare}],
       };
       print(await apiRequest(HisURL, body));
-//      var body = json.encode(map);
-//
-//      var response = await http.post(url,
-//          headers: {"Content-Type": "application/json"},
-//          body: body
-//      );
-//
-//      print("${response.statusCode}");
-//      print("${response.body}");
-//      return response;
-
-//    print(await apiRequest(url, map));
   }
 
 
