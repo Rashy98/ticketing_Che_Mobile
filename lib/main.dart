@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ticketing_app/Screens/ScanQR.dart';
+import 'package:ticketing_app/Screens/LoginPage.dart';
+import 'package:ticketing_app/Screens/Register.dart';
+
+
 
 void main() {
   runApp(MyApp());
@@ -27,7 +31,7 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home:ScanQR(),
+      home:LoginPage(),
     );
   }
 }

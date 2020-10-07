@@ -89,6 +89,7 @@ class ScanQR extends StatelessWidget{
             height: 50.0,
             child: RaisedButton(
               onPressed: () => {
+                print("KOLLO"),
               Navigator.of(context).pop(),
               Navigator.push(
               context, MaterialPageRoute(builder: (context) => StartPointC())

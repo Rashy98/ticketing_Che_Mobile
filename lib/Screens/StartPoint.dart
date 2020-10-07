@@ -7,6 +7,8 @@ import 'package:ticketing_app/Screens/FinishScan.dart';
 import 'package:ticketing_app/Widget/NavDrawer.dart';
 import "dart:math";
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 
 class StartPointC extends StatefulWidget{
@@ -15,7 +17,18 @@ class StartPointC extends StatefulWidget{
 }
 
 
+
 class _StartPoint extends State<StartPointC> {
+
+  Future<String> getUser() async{
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance() ;
+
+    String userId = sharedPreferences.getString('token');
+    return userId;
+  }
+
+
+
 
   @override
   void initState() {
@@ -165,7 +178,8 @@ else {
               Container(
                 height: 50.0,
                 child: RaisedButton(
-                  onPressed: () => {
+                  onPressed: () async => {
+                    print(await getUser()),
                     Navigator.of(context).pop(),
                     Navigator.push(
                         context, MaterialPageRoute(builder: (context) => FinishScan(sPoint:element))
