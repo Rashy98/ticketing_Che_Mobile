@@ -24,6 +24,33 @@ class _LoginPageState extends State <LoginPage> {
   TextEditingController _passController = TextEditingController();
 
   bool _isloading = false;
+  var id = null;
+
+  Future<String> getUser() async{
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance() ;
+
+    String userId = sharedPreferences.getString('token');
+    return userId;
+  }
+  @override
+  void initState (){
+
+    getUser().then((value) => {
+        if(value != null){
+          Navigator.of(context).pop(),
+          Navigator.push(
+          context, MaterialPageRoute(builder: (context) => ScanQR())
+          )}
+    });
+    super.initState();
+  }
+  getdata() async{
+    var user = await getUser();
+    print(await getUser());
+    setState(() {
+      id =  user;
+    });
+  }
 
   signIn(String email, String pass) async {
     String url = "http://10.0.2.2:8000/user/login";
@@ -81,6 +108,7 @@ class _LoginPageState extends State <LoginPage> {
     return Scaffold(
 
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         flexibleSpace: Container(
           decoration: BoxDecoration(
               gradient: LinearGradient(

@@ -1,12 +1,18 @@
+
 import 'package:flutter/material.dart';
 import 'package:ticketing_app/Screens/QRTry.dart';
 import 'package:ticketing_app/Screens/ScanQR.dart';
 import 'package:ticketing_app/Screens/ShowHistory.dart';
 import 'package:ticketing_app/Screens/StartPoint.dart';
 import 'package:ticketing_app/Screens/TopUp.dart';
+import 'package:ticketing_app/Screens/LoginPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+
 
 
 class NavDrawer extends StatelessWidget {
+  SharedPreferences preference;
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -34,7 +40,8 @@ class NavDrawer extends StatelessWidget {
             height: 20,
           ),
           ListTile(
-            leading: Icon(Icons.directions_transit),
+            leading: Icon(Icons.directions_transit,
+                           color: Colors.white),
             title: Text('START JOURNEY' , style: const TextStyle(
                 color: Color(0xFFFFFFFF),
                 fontSize: 18
@@ -49,7 +56,8 @@ class NavDrawer extends StatelessWidget {
           ),
 
           ListTile(
-            leading: Icon(Icons.history),
+            leading: Icon(Icons.history,
+                color: Colors.white),
             title: Text('VIEW PAST JOURNEYS' , style: const TextStyle(
                 color: Color(0xFFFFFFFF),
                 fontSize: 18
@@ -64,7 +72,8 @@ class NavDrawer extends StatelessWidget {
           ),
 
             ListTile(
-            leading: Icon(Icons.payment),
+            leading: Icon(Icons.payment,
+                color: Colors.white),
             title: Text('TOP UP ACCOUNT' , style: const TextStyle(
               color: Color(0xFFFFFFFF),
                 fontSize: 18
@@ -79,7 +88,8 @@ class NavDrawer extends StatelessWidget {
 
           ),
           ListTile(
-            leading: Icon(Icons.help),
+            leading: Icon(Icons.help,
+                color: Colors.white),
             title: Text('HELP' , style: const TextStyle(
                 color: Color(0xFFFFFFFF),
                 fontSize: 18
@@ -90,19 +100,22 @@ class NavDrawer extends StatelessWidget {
 
           ),
 
-          SizedBox(
-            height: 250,
-          ),
+//          SizedBox(
+//            height: 20,
+//          ),
           ListTile(
-            leading: Icon(Icons.exit_to_app),
+            leading: Icon(Icons.exit_to_app,
+                color: Colors.white),
             title: Text('Logout',style: const TextStyle(
                 color: Color(0xFFFFFFFF),
                 fontSize: 18
             ),),
-            onTap: () => {
+            onTap: () async => {
+              preference = await SharedPreferences.getInstance(),
+              preference.remove('token'),
               Navigator.of(context).pop(),
               Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => MyApps())
+                  context, MaterialPageRoute(builder: (context) => LoginPage())
               )
             },
           ),

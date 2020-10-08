@@ -38,12 +38,12 @@ class _SignupPageState extends State <SignupPage> {
       },
 
       body: jsonEncode({
-        'name': _nameController.text,
-        'email':_emailController.text,
-        'password':_passController.text,
-        'nic':_nicController.text,
-        'contactNumber':_phoneController.text,
-        'url':_nameController.text + _emailController.text + _nicController.text + _phoneController.text ,
+        'name': _nameController.text.trim(),
+        'email':_emailController.text.trim(),
+        'password':_passController.text.trim(),
+        'nic':_nicController.text.trim(),
+        'contactNumber':_phoneController.text.trim(),
+        'url':_nameController.text.trim() + _emailController.text.trim() + _nicController.text.trim() + _phoneController.text.trim() ,
         'TravelAccount':"Pay as You Go"
       }),
     );
