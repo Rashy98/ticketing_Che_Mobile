@@ -44,6 +44,7 @@ class _LoginPageState extends State <LoginPage> {
 
         sharedPreferences.setString("token", jsonResponse['id']);
         print(sharedPreferences.getString('token'));
+        var sId = sharedPreferences.getString('token');
 
 
 
@@ -192,7 +193,7 @@ class _LoginPageState extends State <LoginPage> {
                     Container(
                       height: 50.0,
                       child: RaisedButton(
-                        onPressed: ()=> signIn(_emailController.text, _passController.text),
+                        onPressed: ()=> signIn(_emailController.text.trim(), _passController.text.trim()),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(80.0)),
                         padding: EdgeInsets.all(0.0),

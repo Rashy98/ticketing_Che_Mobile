@@ -3,20 +3,25 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ticketing_app/Screens/FinishScan.dart';
 import 'package:ticketing_app/Widget/NavDrawer.dart';
 import "dart:math";
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
+import 'ScanQR.dart';
+import 'ShowHistory.dart';
 
 
 class EndPointC extends StatefulWidget{
-  EndPointC(this.sPoint) : super();
+  EndPointC(this.sPoint,this.startTime) : super();
   String sPoint;
+  String startTime;
 
   @override
   _EndPoint createState() => _EndPoint();
 }
-
 
 class _EndPoint extends State <EndPointC>{
 
@@ -25,23 +30,34 @@ class _EndPoint extends State <EndPointC>{
     onStart();
     _fetchData();
     _fetchUser();
+    getdata();
+    print(widget.startTime +"  "+time);
     super.initState();
   }
 
   int fDist = 0;
   int dist;
   int fCred = 0;
+  static final DateTime now = DateTime.now();
+  static final DateFormat formatter = DateFormat('yyyy-MM-dd');
+  static final DateFormat timeFormatter = DateFormat.Hm();
+  final String time = timeFormatter.format(now);
+  final String formatted = formatter.format(now);
 
   List lists = List();
   List users = List();
   var isLoading = false;
   var tot = 0;
   var currentCred;
-
+  BuildContext _context;
   var element = "";
+  var id = null;
 
-  getCount(){
+  Future<String> getUser() async{
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance() ;
 
+    String userId = sharedPreferences.getString('token');
+    return userId;
   }
 
   void onStart() async{
@@ -63,6 +79,13 @@ class _EndPoint extends State <EndPointC>{
     }
   }
 
+  getdata() async{
+    var user = await getUser();
+    print(await getUser());
+    setState(() {
+      id =  user;
+    });
+  }
 
   void _fetchData() async {
 //    getCount();
@@ -124,9 +147,9 @@ class _EndPoint extends State <EndPointC>{
 //    final response =  await http.post("http://10.0.2.2:8000/user/5f6754a91cc10b4a5c380ba7",fDist);
 //  }
 
-  Future<http.Response> EndJourney(int cred,int fare, String end) async {
+  Future<http.Response> EndJourney(int cred,int fare, String end,double distance,BuildContext context) async {
       String url =
-          'http://10.0.2.2:8000/user/updateCredit/5f6754a91cc10b4a5c380ba7';
+          'http://10.0.2.2:8000/user/updateCredit/'+id;
       Map map = {
         'Credits': cred,
       };
@@ -137,12 +160,21 @@ class _EndPoint extends State <EndPointC>{
       String HisURL =
       'http://10.0.2.2:8000/user/pushHistory';
       Map body = {
-        '_id':'5f6754a91cc10b4a5c380ba7',
-        'history':[{"Start":widget.sPoint,"End":end, "Fare": fare}],
+        '_id':id,
+        'history':[{"Start":widget.sPoint,"End":end, "Fare": fare,"Distance":distance,"date":formatted,"startTime":widget.startTime,"endTime":time}],
       };
+
       print(await apiRequest(HisURL, body));
+      _success(context);
+
   }
 
+  _success(context){
+    Navigator.pop(context);
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => showHistory())
+    );
+  }
 
   Future<String> apiRequest(String url, Map jsonMap) async {
     HttpClient httpClient = new HttpClient();
@@ -153,6 +185,7 @@ class _EndPoint extends State <EndPointC>{
     // todo - you should check the response.statusCode
     String reply = await response.transform(utf8.decoder).join();
     httpClient.close();
+//    _success(_context);
     return reply;
   }
 
@@ -209,7 +242,7 @@ class _EndPoint extends State <EndPointC>{
     double inKM = (fDist/10);
 
     for(var i = 0 ; i < users.length;i++){
-      if(users[i]['_id'] == "5f6754a91cc10b4a5c380ba7")
+      if(users[i]['_id'] == id)
         currentCred = users[i]['Credits'];
 
     }
@@ -222,6 +255,8 @@ class _EndPoint extends State <EndPointC>{
     }
 
     print(fCred);
+
+
 
     // TODO: implement build
     return Scaffold(
@@ -314,7 +349,7 @@ class _EndPoint extends State <EndPointC>{
                 RaisedButton(
                   onPressed: () => {
                     Navigator.of(context).pop(),
-                    this.EndJourney(fCred,fDist,element)
+                    this.EndJourney(fCred,fDist,element,inKM,context)
                   },
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(80.0)),

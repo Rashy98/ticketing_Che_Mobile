@@ -21,8 +21,10 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
-
+  flutter_rounded_date_picker: 1.0.0
+  flutter_cupertino_date_picker: ^1.0.26+2
   http: ^0.12.2
+  intl: ^0.16.1
   flutter:
     sdk: flutter
 
@@ -44,6 +46,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

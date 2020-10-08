@@ -3,19 +3,18 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ticketing_app/Screens/FinishScan.dart';
 import 'package:ticketing_app/Widget/NavDrawer.dart';
 import "dart:math";
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:intl/intl.dart';
 
 
 class StartPointC extends StatefulWidget{
   @override
   _StartPoint createState() => _StartPoint();
 }
-
 
 
 class _StartPoint extends State<StartPointC> {
@@ -27,19 +26,20 @@ class _StartPoint extends State<StartPointC> {
     return userId;
   }
 
-
-
-
   @override
   void initState() {
     onStart();
     _fetchData();
+    print(time);
     super.initState();
   }
 
 
   List lists = List();
   var isLoading = true;
+  static final DateTime now = DateTime.now();
+  static final DateFormat timeFormatter = DateFormat.Hm();
+  final String time = timeFormatter.format(now);
 
   var element = "";
 
@@ -182,7 +182,7 @@ else {
                     print(await getUser()),
                     Navigator.of(context).pop(),
                     Navigator.push(
-                        context, MaterialPageRoute(builder: (context) => FinishScan(sPoint:element))
+                        context, MaterialPageRoute(builder: (context) => FinishScan(element,time))
 
                     )},
                   shape: RoundedRectangleBorder(

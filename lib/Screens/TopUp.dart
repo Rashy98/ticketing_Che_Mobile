@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ticketing_app/Screens/FinishScan.dart';
 import 'package:ticketing_app/Widget/NavDrawer.dart';
 import "dart:math";
@@ -20,6 +21,7 @@ class _TopUP extends State<TopUp> {
   @override
   void initState() {
     _getUsersCredits();
+    getdata();
     super.initState();
   }
 
@@ -27,6 +29,7 @@ class _TopUP extends State<TopUp> {
   List users = List();
   var currentCred = 0 ;
   var credits = 0;
+  var id = null;
 
   final AmountController = TextEditingController();
   final YearController = TextEditingController();
@@ -35,6 +38,14 @@ class _TopUP extends State<TopUp> {
   final csvController = TextEditingController();
   final monthController = TextEditingController();
   var enteredAmount = 0;
+
+
+  Future<String> getUser() async{
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance() ;
+
+    String userId = sharedPreferences.getString('token');
+    return userId;
+  }
 
   _displayDialogBoxSec(BuildContext context) async {
     onClickUpdate();
@@ -143,7 +154,7 @@ class _TopUP extends State<TopUp> {
   void _getCred(){
     if(users.length !=0){
       for(var i = 0 ; i < users.length;i++){
-        if(users[i]['_id'] == "5f6754a91cc10b4a5c380ba7") {
+        if(users[i]['_id'] == id) {
           print(users[i]['history']);
           currentCred = users[i]['Credits'];
         }
@@ -151,11 +162,18 @@ class _TopUP extends State<TopUp> {
     }
   }
 
+  getdata() async{
+    var user = await getUser();
+    print(await getUser());
+    setState(() {
+      id =  user;
+    });
+  }
 
 
   Future<http.Response> _TopUPAccount(int cred) async {
     String url =
-        'http://10.0.2.2:8000/user/updateCredit/5f6754a91cc10b4a5c380ba7';
+        'http://10.0.2.2:8000/user/updateCredit/'+id;
     Map map = {
       'Credits': cred,
     };

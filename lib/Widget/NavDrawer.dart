@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ticketing_app/Screens/QRTry.dart';
 import 'package:ticketing_app/Screens/ScanQR.dart';
 import 'package:ticketing_app/Screens/ShowHistory.dart';
 import 'package:ticketing_app/Screens/StartPoint.dart';
@@ -101,7 +102,7 @@ class NavDrawer extends StatelessWidget {
             onTap: () => {
               Navigator.of(context).pop(),
               Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => StartPointC())
+                  context, MaterialPageRoute(builder: (context) => MyApps())
               )
             },
           ),
