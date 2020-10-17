@@ -4,11 +4,12 @@ import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ticketing_app/Widget/NavDrawer.dart';
+import 'package:ticketing_app/Screens/Common/NavDrawer.dart';
 import 'EndJourney.dart';
 import 'package:http/http.dart' as http;
-import 'StartPoint.dart';
 
+
+//Scan QR to end journey
 class FinishScan extends StatefulWidget{
   FinishScan(this.sPoint,this.startTime) : super();
   String sPoint;
@@ -18,29 +19,35 @@ class FinishScan extends StatefulWidget{
 
 }
 class _FinishScan extends State<FinishScan>{
+
+  //Initializing variables
   String _base64;
   List users = List();
   var id = null;
   Uint8List bytes ;
   var isLoading = true;
 
+
+  //Initial state
   @override
   void initState() {
-    _fetchData();
-  getdata();
-  getBase64();
+    _fetchUsers();
+    getdata();
+    getBase64();
     super.initState();
   }
 
 
+  //Get user token according to the logged in user
   Future<String> getUser() async{
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance() ;
 
     String userId = sharedPreferences.getString('token');
     return userId;
   }
-  void _fetchData() async {
 
+  //Retrieve all users from the database
+  void _fetchUsers() async {
     final response = await http.get("http://10.0.2.2:8000/user/");
     if (response.statusCode == 200) {
       users = json.decode(response.body) as List;
@@ -52,7 +59,16 @@ class _FinishScan extends State<FinishScan>{
     }
   }
 
+  //Get user's id according to the logged in user
+  getdata() async{
+    var user = await getUser();
+    print(await getUser());
+    setState(() {
+      id =  user;
+    });
+  }
 
+//Get QR code according to the user
   getBase64() {
     for (var x = 0; x < users.length; x++) {
       if (id != null) {
@@ -71,16 +87,12 @@ class _FinishScan extends State<FinishScan>{
     }
   }
 
-  getdata() async{
-    var user = await getUser();
-    print(await getUser());
-    setState(() {
-      id =  user;
-    });
-  }
+
+  //Main Widget
   @override
   Widget build(BuildContext context) {
 
+    //convert base64 to bytes to display the QR as an image
     if (_base64 != null) {
       setState(() {
         bytes = Base64Codec().decode(_base64.substring(22));
@@ -108,14 +120,13 @@ class _FinishScan extends State<FinishScan>{
             ),
           ),
 
-//        title: Text('TicketingApp'),
+
 
         ),
         body: Column(
             children: [
               Container(
                 decoration: new BoxDecoration(
-//                   border: Border.all(color: Colors.red),
                   borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(70.0),
                       bottomRight: Radius.circular(70.0)),
@@ -139,13 +150,9 @@ class _FinishScan extends State<FinishScan>{
                           height: 200,
                           width: 412,
                           decoration: BoxDecoration(
-//                        border: Border.all(color: Colors.red),
                               borderRadius: BorderRadius.only(
                                   bottomLeft: Radius.circular(20.0),
                                   bottomRight: Radius.circular(20.0)),
-                              boxShadow: [
-//                          BoxShadow(color:  Colors.red)
-                              ]
                           ),
                           child:Center(
                               child:Text('Scan To End     Journey',style: TextStyle(color: Colors.white,fontSize: 40),textAlign: TextAlign.center,)
@@ -159,6 +166,7 @@ class _FinishScan extends State<FinishScan>{
                 height: 50,
               ),
               Text('Scan & End',style:TextStyle(color: Colors.black54,fontSize: 30)),
+
               Text('Starting point : ' +widget.sPoint,style:TextStyle(color: Colors.black54,fontSize: 30)),
 
               SizedBox(
@@ -171,7 +179,7 @@ class _FinishScan extends State<FinishScan>{
                   onPressed: () => {
                     Navigator.of(context).pop(),
                     Navigator.push(
-                        context, MaterialPageRoute(builder: (context) => EndPointC(widget.sPoint,widget.startTime))
+                        context, MaterialPageRoute(builder: (context) => EndPoint(widget.sPoint,widget.startTime))
                     )},
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(80.0)),
                   padding: EdgeInsets.all(0.0),

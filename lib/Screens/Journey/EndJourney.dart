@@ -4,18 +4,19 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ticketing_app/Screens/FinishScan.dart';
-import 'package:ticketing_app/Widget/NavDrawer.dart';
+import 'package:ticketing_app/Screens/Common/NavDrawer.dart';
 import "dart:math";
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import 'ScanQR.dart';
-import 'ShowHistory.dart';
+import '../History/ShowHistory.dart';
 
 
-class EndPointC extends StatefulWidget{
-  EndPointC(this.sPoint,this.startTime) : super();
+
+//Displays start point, end point, fare, distance and calculate fare according to distance
+class EndPoint extends StatefulWidget{
+  EndPoint(this.sPoint,this.startTime) : super();
   String sPoint;
   String startTime;
 
@@ -23,35 +24,50 @@ class EndPointC extends StatefulWidget{
   _EndPoint createState() => _EndPoint();
 }
 
-class _EndPoint extends State <EndPointC>{
+class _EndPoint extends State <EndPoint>{
 
-  @override
-  void initState() {
-    onStart();
-    _fetchData();
-    _fetchUser();
-    getdata();
-    print(widget.startTime +"  "+time);
-    super.initState();
-  }
-
+  //Initializing the variables
   int fDist = 0;
   int dist;
   int fCred = 0;
+
+  var isLoading = false;
+  var tot = 0;
+  var currentCred;
+  var element = "";
+  var id = null;
+  var allStands;
+  var credits;
+  var stands = [];
+  var startDistance;
+  var EndDistance;
+
+  List busStands = List();
+  List users = List();
+
   static final DateTime now = DateTime.now();
   static final DateFormat formatter = DateFormat('yyyy-MM-dd');
   static final DateFormat timeFormatter = DateFormat.Hm();
   final String time = timeFormatter.format(now);
   final String formatted = formatter.format(now);
 
-  List lists = List();
-  List users = List();
-  var isLoading = false;
-  var tot = 0;
-  var currentCred;
+  // generates a new Random object
+  final _random = new Random();
+
   BuildContext _context;
-  var element = "";
-  var id = null;
+
+
+  //Initial state
+  @override
+  void initState() {
+    onStart();
+    _fetchBusStands();
+    _fetchUser();
+    getdata();
+    print(widget.startTime +"  "+time);
+    super.initState();
+  }
+
 
   Future<String> getUser() async{
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance() ;
@@ -61,12 +77,13 @@ class _EndPoint extends State <EndPointC>{
   }
 
   void onStart() async{
-    await _fetchData();
+    await _fetchBusStands();
     await _fetchUser();
   }
 
 
 
+  //Retrieve all users
   void _fetchUser() async{
     final response =  await http.get("http://10.0.2.2:8000/user/");
     if (response.statusCode == 200) {
@@ -79,6 +96,7 @@ class _EndPoint extends State <EndPointC>{
     }
   }
 
+
   getdata() async{
     var user = await getUser();
     print(await getUser());
@@ -87,14 +105,15 @@ class _EndPoint extends State <EndPointC>{
     });
   }
 
-  void _fetchData() async {
-//    getCount();
+
+  //Retrieve all details of bus stands from the database
+  void _fetchBusStands() async {
     setState(() {
       isLoading = true;
     });
     final response =  await http.get("http://10.0.2.2:8000/busStand/");
     if (response.statusCode == 200) {
-      lists = json.decode(response.body) as List;
+      busStands = json.decode(response.body) as List;
       setState(() {
         isLoading = false;
       });
@@ -102,52 +121,32 @@ class _EndPoint extends State <EndPointC>{
       throw Exception('Failed to load data');
     }
   }
-  var startDis;
-  var EndDis;
 
+  //Calculate Distance
   int getDistance() {
-     lists.map((item) =>
-     {
+     busStands.map((item) => {
        print(item),
        if(item['busStand'] == widget.sPoint){
-          startDis = item['DistanceFromCol'],
+          startDistance = item['DistanceFromCol'],
            if(item['busStand'] == element){
-             EndDis = item['DistanceFromCol'],
-         }
-       }
+             EndDistance = item['DistanceFromCol'],
+            }
+        }
      }
      );
      setState(){
-       tot = startDis - EndDis;
+       tot = startDistance - EndDistance;
      }
-     print(startDis);
+     print(startDistance);
       return tot;
 
   }
 
-  int getCredits(){
-
-  }
-
-  var stands = [];
-
-// generates a new Random object
-  final _random = new Random();
-
-  var x;
-  var credits;
-
-// generate a random index based on the list length
-// and use it to retrieve the element
 
 
-//  void EndJourney() async{
-//
-//
-//    final response =  await http.post("http://10.0.2.2:8000/user/5f6754a91cc10b4a5c380ba7",fDist);
-//  }
 
-  Future<http.Response> EndJourney(int cred,int fare, String end,double distance,BuildContext context) async {
+  Future<http.Response> EndJourney(int cred,int fare, String end,double distance) async {
+    //Update user's credits after ending the journey
       String url =
           'http://10.0.2.2:8000/user/updateCredit/'+id;
       Map map = {
@@ -157,18 +156,20 @@ class _EndPoint extends State <EndPointC>{
 
 
 
-      String HisURL =
+      //Updating user's history after ending the journey
+      String historyURL =
       'http://10.0.2.2:8000/user/pushHistory';
       Map body = {
         '_id':id,
         'history':[{"Start":widget.sPoint,"End":end, "Fare": fare,"Distance":distance,"date":formatted,"startTime":widget.startTime,"endTime":time}],
       };
 
-      print(await apiRequest(HisURL, body));
-      _success(context);
+      print(await apiRequest(historyURL, body));
+      _success(_context);
 
   }
 
+  //Success pop up
   _success(context){
     Navigator.pop(context);
     Navigator.push(
@@ -185,15 +186,15 @@ class _EndPoint extends State <EndPointC>{
     // todo - you should check the response.statusCode
     String reply = await response.transform(utf8.decoder).join();
     httpClient.close();
-//    _success(_context);
     return reply;
   }
 
   @override
   Widget build(BuildContext context) {
-    for(var i = 0 ; i < lists.length;i++){
-      if(lists[i]['busStand'] != widget.sPoint)
-       stands.add(lists[i]['busStand']);
+
+    for(var i = 0 ; i < busStands.length;i++){
+      if(busStands[i]['busStand'] != widget.sPoint)
+       stands.add(busStands[i]['busStand']);
     }
 
     if(stands.length == 0){
@@ -202,7 +203,7 @@ class _EndPoint extends State <EndPointC>{
       });
     }
     else {
-     x = stands[_random.nextInt(stands.length)];
+     allStands = stands[_random.nextInt(stands.length)];
     }
 
     if(stands.length == 0){
@@ -214,21 +215,19 @@ class _EndPoint extends State <EndPointC>{
       element = stands[_random.nextInt(stands.length)];
     }
 
-
-    for(var i = 0 ; i < lists.length;i++){
-      if(lists[i]['busStand'] == widget.sPoint) {
-        startDis = lists[i]['DistanceFromCol'];
+    for(var i = 0 ; i < busStands.length;i++){
+      if(busStands[i]['busStand'] == widget.sPoint) {
+        startDistance = busStands[i]['DistanceFromCol'];
       }
 
-        if(lists[i]['busStand'] == element){
-           EndDis = lists[i]['DistanceFromCol'];
+        if(busStands[i]['busStand'] == element){
+           EndDistance = busStands[i]['DistanceFromCol'];
         }
     }
 
-
-
-    if(startDis !=null  && EndDis != null) {
-       dist = startDis - EndDis;
+    //Calculate total distance
+    if(startDistance !=null  && EndDistance != null) {
+       dist = startDistance - EndDistance;
     }
 
     if(dist != null) {
@@ -239,13 +238,16 @@ class _EndPoint extends State <EndPointC>{
         fDist = dist;
       }
     }
-    double inKM = (fDist/10);
 
+    //Get Distance in KM
+    double inKM = (fDist/10);
     for(var i = 0 ; i < users.length;i++){
       if(users[i]['_id'] == id)
         currentCred = users[i]['Credits'];
 
     }
+
+    //Deduct credits from total credits of user
     if(currentCred !=null && fDist !=null){
       credits = currentCred - fDist;
     }
@@ -254,8 +256,9 @@ class _EndPoint extends State <EndPointC>{
         fCred = credits;
     }
 
-    print(fCred);
-
+    setState(() {
+      _context = context;
+    });
 
 
     // TODO: implement build
@@ -274,14 +277,12 @@ class _EndPoint extends State <EndPointC>{
             ),
           ),
 
-//        title: Text('TicketingApp'),
 
         ),
         body: Column(
             children: [
               Container(
                 decoration: new BoxDecoration(
-//                   border: Border.all(color: Colors.red),
                   borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(70.0),
                       bottomRight: Radius.circular(70.0)),
@@ -309,9 +310,6 @@ class _EndPoint extends State <EndPointC>{
                               borderRadius: BorderRadius.only(
                                   bottomLeft: Radius.circular(20.0),
                                   bottomRight: Radius.circular(20.0)),
-                              boxShadow: [
-//                          BoxShadow(color:  Colors.red)
-                              ]
                           ),
                           child: Center(
                               child: Text('Journey Ended!', style: TextStyle(
@@ -348,8 +346,7 @@ class _EndPoint extends State <EndPointC>{
                 child:
                 RaisedButton(
                   onPressed: () => {
-                    Navigator.of(context).pop(),
-                    this.EndJourney(fCred,fDist,element,inKM,context)
+                    this.EndJourney(fCred,fDist,element,inKM)
                   },
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(80.0)),
@@ -381,11 +378,6 @@ class _EndPoint extends State <EndPointC>{
                   ),
                 ),
               ),
-              Container(
-//                child:UserList(),
-              ),
-
-
             ]
         )
     );

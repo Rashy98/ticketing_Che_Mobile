@@ -1,10 +1,8 @@
 
 import 'package:flutter/material.dart';
-import 'package:ticketing_app/Screens/QRTry.dart';
-import 'package:ticketing_app/Screens/ScanQR.dart';
-import 'package:ticketing_app/Screens/ShowHistory.dart';
-import 'package:ticketing_app/Screens/StartPoint.dart';
-import 'package:ticketing_app/Screens/TopUp.dart';
+import 'package:ticketing_app/Screens/Journey/ScanQR.dart';
+import 'package:ticketing_app/Screens/History/ShowHistory.dart';
+import 'package:ticketing_app/Screens/Topup/TopUp.dart';
 import 'package:ticketing_app/Screens/LoginPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,7 +13,8 @@ class NavDrawer extends StatelessWidget {
   SharedPreferences preference;
   @override
   Widget build(BuildContext context) {
-    return Drawer(
+    return
+      Drawer(
       child: Container(
           color: Color.fromARGB(255, 115, 71, 108),
         child: ListView(
@@ -30,11 +29,6 @@ class NavDrawer extends StatelessWidget {
               style: TextStyle(color: Colors.white, fontSize: 19),
             ),
           ),
-//            decoration: BoxDecoration(
-//                color: Colors.green,
-//                image: DecorationImage(
-//                    fit: BoxFit.fill,
-//                    )),
           ),
           SizedBox(
             height: 20,
@@ -99,10 +93,6 @@ class NavDrawer extends StatelessWidget {
             },
 
           ),
-
-//          SizedBox(
-//            height: 20,
-//          ),
           ListTile(
             leading: Icon(Icons.exit_to_app,
                 color: Colors.white),

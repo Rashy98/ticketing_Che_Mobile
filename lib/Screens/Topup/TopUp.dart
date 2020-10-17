@@ -4,10 +4,12 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ticketing_app/Screens/FinishScan.dart';
-import 'package:ticketing_app/Widget/NavDrawer.dart';
+import 'package:ticketing_app/Screens/Journey/FinishScan.dart';
+import 'package:ticketing_app/Screens/Common/NavDrawer.dart';
 import "dart:math";
 import 'package:http/http.dart' as http;
+
+import '../Journey/ScanQR.dart';
 
 
 class TopUp extends StatefulWidget{
@@ -48,7 +50,7 @@ class _TopUP extends State<TopUp> {
   }
 
   _displayDialogBoxSec(BuildContext context) async {
-    onClickUpdate();
+    onClickUpdate(context);
     return showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -115,13 +117,13 @@ class _TopUP extends State<TopUp> {
         });
   }
 
-  _success(BuildContext context) async{
+  _success(BuildContext context) {
     Navigator.pop(context);
-    onClickUpdate();
-    _ResetButton();
+    onClickUpdate(context);
+    _ResetButton(context);
   }
 
-  void _ResetButton(){
+  void _ResetButton(BuildContext context){
     setState(() {
       AmountController.text="";
        YearController.text="";
@@ -129,14 +131,15 @@ class _TopUP extends State<TopUp> {
       cardNoController.text="";
        csvController.text="";
       monthController.text="";
+
     });
   }
-  onClickUpdate(){
+  onClickUpdate(BuildContext context) {
     enteredAmount = int.parse(AmountController.text);
     if(enteredAmount != null && currentCred != 0){
       credits = currentCred + enteredAmount;
       if(credits != 0 ){
-        _TopUPAccount(credits);
+        _TopUPAccount(credits,context);
       }
     }
 
@@ -146,9 +149,9 @@ class _TopUP extends State<TopUp> {
     if (response.statusCode == 200) {
       users = json.decode(response.body) as List;
       }
-    else {
-      throw Exception('Failed to load data');
-    }
+//    else {
+//      throw Exception('Failed to load data');
+//    }
   }
 
   void _getCred(){
@@ -171,17 +174,23 @@ class _TopUP extends State<TopUp> {
   }
 
 
-  Future<http.Response> _TopUPAccount(int cred) async {
+  Future<http.Response> _TopUPAccount(int cred,BuildContext context) async {
     String url =
-        'http://10.0.2.2:8000/user/updateCredit/'+id;
+        'http://10.0.2.2:8000/user/updateCredit/' + id;
     Map map = {
       'Credits': cred,
     };
-    _displayDialogBoxSec;
+
     print(await apiRequest(url, map));
-
-
+    if (await apiRequest(url, map) == "Credits updated") {
+      Navigator.pop(context);
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => ScanQR())
+      );
+    }
   }
+
+
 
   Future<String> apiRequest(String url, Map jsonMap) async {
     HttpClient httpClient = new HttpClient();
@@ -205,7 +214,11 @@ class _TopUP extends State<TopUp> {
     }
 
     // TODO: implement build
-    return Scaffold(
+    return
+      new MediaQuery(
+          data: new MediaQueryData(),
+          child:MaterialApp(
+          home:Scaffold(
         drawer: NavDrawer(),
         appBar: AppBar(
           flexibleSpace: Container(
@@ -476,7 +489,9 @@ class _TopUP extends State<TopUp> {
         )
     )
     )
-    );
+    )
+          )
+      );
   }
 }
 

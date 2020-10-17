@@ -4,9 +4,9 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:ticketing_app/Screens/FinishScan.dart';
-import 'package:ticketing_app/Screens/ScanQR.dart';
-import 'package:ticketing_app/Widget/NavDrawer.dart';
+import 'package:ticketing_app/Screens/Journey/FinishScan.dart';
+import 'package:ticketing_app/Screens/Journey/ScanQR.dart';
+import 'package:ticketing_app/Screens/Common/NavDrawer.dart';
 import "dart:math";
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -122,7 +122,8 @@ class _SignupPageState extends State <SignupPage> {
 //  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return
+      Scaffold(
 
       appBar: AppBar(
         flexibleSpace: Container(

@@ -1,17 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ticketing_app/Screens/FinishScan.dart';
-import 'package:ticketing_app/Widget/NavDrawer.dart';
+import 'package:ticketing_app/Screens/Common/NavDrawer.dart';
 import 'dart:async';
 import "dart:math";
 import 'package:http/http.dart' as http;
-import 'dart:typed_data';
 
 
+
+//Display History according to the user
 class showHistory extends StatefulWidget{
   @override
   _showHistory createState() => _showHistory();
@@ -20,6 +18,32 @@ class showHistory extends StatefulWidget{
 
 class _showHistory extends State<showHistory> {
 
+  //Initializing variables
+  var isLoading = true;
+  var element = "";
+  var id = null;
+
+  List users = List();
+  List lists = List();
+  List stands = List();
+  List<Widget> listArray = [];
+  List data;
+
+  final String apiUrl = "http://10.0.2.2:8000/user/";
+
+
+
+  //Initial state
+  @override
+  void initState() {
+    _fetchData();
+    getdata();
+    getData();
+    super.initState();
+  }
+
+
+//Get user token from the logged in user
   Future<String> getUser() async{
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance() ;
 
@@ -27,22 +51,6 @@ class _showHistory extends State<showHistory> {
     return userId;
   }
 
-  @override
-  void initState() {
-    onStart();
-    _fetchData();
-    getdata();
-    getData();
-    super.initState();
-
-  }
-
-
-  List lists = List();
-  var isLoading = true;
-
-  var element = "";
-  var id = null;
 
 
   getdata() async{
@@ -58,21 +66,17 @@ class _showHistory extends State<showHistory> {
 
   }
 
-  void onStart() async{
-    await _fetchData();
-//    await fetchUserHistory();
-  }
 
-
-  final String apiUrl = "http://10.0.2.2:8000/user/";
+  //Get history according to the user
   Future<List<dynamic>> fetchUserHistory() async {
 
     var result = await http.get(apiUrl);
     return json.decode(result.body)['history'];
 
   }
+
+
   void _fetchData() async {
-//    getCount();
 
     final response = await http.get("http://10.0.2.2:8000/busStand/");
     if (response.statusCode == 200) {
@@ -85,8 +89,23 @@ class _showHistory extends State<showHistory> {
     }
   }
 
-   _returnHistory(){
+  //Retrieve all users
+  Future<String> getData() async {
+    var response = await http.get(
+        Uri.encodeFull("http://10.0.2.2:8000/user/"),
+        headers: {
+          "Accept": "application/json"
+        }
+    );
+    users = json.decode(response.body) as List;
+    this.setState(() {
+      data = json.decode(response.body);
+    });
 
+    return "Success!";
+  }
+  //Return history as list items
+   _returnHistory(){
     if(users.length != 0 && users.length != null) {
       print("users:" + users.length.toString());
       for (var x = 0; x <= users.length; x++) {
@@ -101,8 +120,10 @@ class _showHistory extends State<showHistory> {
               listArray.add(new ListTile(
                 title: Text(users[x]["history"][y]["Start"] + " - " +
                     users[x]["history"][y]["End"]),
-                subtitle: Text("LKR. " +
+                subtitle: Text(users[x]["history"][y]["Distance"].toString()+"Km"+" - LKR. " +
                     users[x]["history"][y]["Fare"].toString() + ".00"),
+                trailing:Icon(Icons.check_circle,
+                    color: Color.fromARGB(255, 182, 82, 80)),
               ));
             }
           }
@@ -117,44 +138,13 @@ class _showHistory extends State<showHistory> {
 
 
 
-  List stands = List();
-  List<Widget> listArray = [];
-
-// generates a new Random object
-  final _random = new Random();
-  List data;
-  List users = List();
-
-// generate a random index based on the list length
-// and use it to retrieve the element
-
-  Future<String> getData() async {
-    var response = await http.get(
-        Uri.encodeFull("http://10.0.2.2:8000/user/"),
-        headers: {
-          "Accept": "application/json"
-        }
-    );
-
-    users = json.decode(response.body) as List;
-    this.setState(() {
-      data = json.decode(response.body);
-    });
-
-//    print(data[0]["history"]);
-
-    return "Success!";
-  }
-
   @override
   Widget build(BuildContext context) {
 
     _returnHistory();
-
-
-
       // TODO: implement build
-    return Scaffold(
+    return MaterialApp(
+        home :Scaffold(
         drawer: NavDrawer(),
         appBar: AppBar(
           flexibleSpace: Container(
@@ -168,9 +158,6 @@ class _showHistory extends State<showHistory> {
                     ])
             ),
           ),
-
-//        title: Text('TicketingApp'),
-
         ),
         body: Container(
             margin: const EdgeInsets.only(top: 0),
@@ -227,7 +214,6 @@ class _showHistory extends State<showHistory> {
                     SizedBox(
                       height: 50,
                     ),
-      //              _returnHistory(),
                    Card(
                           child: Column(
                             children: isLoading? [CircularProgressIndicator()]:listArray
@@ -237,12 +223,11 @@ class _showHistory extends State<showHistory> {
                     SizedBox(
                       height: 20,
                     ),
-
-
                     ]
                 )
             )
         )
+    )
     );
   }
 }

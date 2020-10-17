@@ -1,16 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ticketing_app/Screens/FinishScan.dart';
-import 'package:ticketing_app/Widget/NavDrawer.dart';
+import 'package:ticketing_app/Screens/Journey/FinishScan.dart';
+import 'package:ticketing_app/Screens/Common/NavDrawer.dart';
 import "dart:math";
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 
+//Displays the Start point and gives the option to get directed to the interface to end the journey
 class StartPointC extends StatefulWidget{
   @override
   _StartPoint createState() => _StartPoint();
@@ -18,66 +17,66 @@ class StartPointC extends StatefulWidget{
 
 
 class _StartPoint extends State<StartPointC> {
+  // initializing variables
+  List busStands = List();
+  var isLoading = true;
+  var element = "";
+  var stands = [];
 
-  Future<String> getUser() async{
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance() ;
 
-    String userId = sharedPreferences.getString('token');
-    return userId;
-  }
+// generates a new Random object
+  final _random = new Random();
 
+  static final DateTime now = DateTime.now();
+  static final DateFormat timeFormatter = DateFormat.Hm();
+  final String time = timeFormatter.format(now);
+  final String apiUrl = "http://localhost:8000/busStand/";
+
+  //Initial state
   @override
   void initState() {
     onStart();
-    _fetchData();
+    _fetchBusStands();
     print(time);
     super.initState();
   }
 
 
-  List lists = List();
-  var isLoading = true;
-  static final DateTime now = DateTime.now();
-  static final DateFormat timeFormatter = DateFormat.Hm();
-  final String time = timeFormatter.format(now);
-
-  var element = "";
-
-  getCount(){
-
+  //Get user token from the logged in user
+  Future<String> getUser() async{
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance() ;
+    String userId = sharedPreferences.getString('token');
+    return userId;
   }
+
 
   void onStart() async{
-    await _fetchData();
+    await _fetchBusStands();
   }
 
-  final String apiUrl = "http://localhost:8000/busStand/";
   Future<List<dynamic>> fetchUsers() async {
-
     var result = await http.get(apiUrl);
     return json.decode(result.body)['busStand'];
 
   }
 
-  void _fetchData() async {
-//    getCount();
+  //Retrieve all bus stands from database
+  void _fetchBusStands() async {
 
     final response =  await http.get("http://10.0.2.2:8000/busStand/");
     if (response.statusCode == 200) {
-      lists = json.decode(response.body) as List;
+      busStands = json.decode(response.body) as List;
       setState(() {
         isLoading = false;
       });
-    } else {
-      throw Exception('Failed to load data');
     }
+//    else {
+//      throw Exception('Failed to load data');
+//    }
   }
 
 
-  var stands = [];
-  
-// generates a new Random object
-  final _random = new Random();
+
 
 // generate a random index based on the list length
 // and use it to retrieve the element
@@ -85,8 +84,10 @@ class _StartPoint extends State<StartPointC> {
 
   @override
   Widget build(BuildContext context) {
-    for(var i = 0 ; i < lists.length;i++){
-      stands.add(lists[i]['busStand']);
+
+    //Get all bus stands to a array
+    for(var i = 0 ; i < busStands.length;i++){
+      stands.add(busStands[i]['busStand']);
     }
 
     if(stands.length == 0){
@@ -94,13 +95,16 @@ class _StartPoint extends State<StartPointC> {
         isLoading:true;
       });
     }
-else {
+    else {
+      //get a random bus start to start the journey
       element = stands[_random.nextInt(stands.length)];
     }
 
 
     // TODO: implement build
-    return Scaffold(
+    return
+      MaterialApp(
+        home:Scaffold(
         drawer: NavDrawer(),
         appBar: AppBar(
           flexibleSpace: Container(
@@ -115,14 +119,11 @@ else {
             ),
           ),
 
-//        title: Text('TicketingApp'),
-
         ),
         body: Column(
             children: [
               Container(
                 decoration: new BoxDecoration(
-//                   border: Border.all(color: Colors.red),
                   borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(70.0),
                       bottomRight: Radius.circular(70.0)),
@@ -146,13 +147,9 @@ else {
                           height: 200,
                           width: 412,
                           decoration: BoxDecoration(
-//                        border: Border.all(color: Colors.red),
                               borderRadius: BorderRadius.only(
                                   bottomLeft: Radius.circular(20.0),
                                   bottomRight: Radius.circular(20.0)),
-                              boxShadow: [
-//                          BoxShadow(color:  Colors.red)
-                              ]
                           ),
                           child: Center(
                               child: Text('Journey Started!', style: TextStyle(
@@ -165,7 +162,7 @@ else {
                 ),
               ),
               SizedBox(
-                height: 50,
+                height: 150,
               ),
               isLoading ?
               Center(child: CircularProgressIndicator()) :
@@ -173,7 +170,7 @@ else {
                   style: TextStyle(color: Colors.black54, fontSize: 30))
                   ,
               SizedBox(
-                height: 20,
+                height: 50,
               ),
               Container(
                 height: 50.0,
@@ -215,14 +212,10 @@ else {
                   ),
                 ),
               ),
-              Container(
-//                child:UserList(),
-              ),
-
-
-    ]
+            ]
         )
-    );
+    )
+      );
   }
 }
 

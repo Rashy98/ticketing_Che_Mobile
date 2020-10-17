@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:ticketing_app/Screens/FinishScan.dart';
-import 'package:ticketing_app/Screens/ScanQR.dart';
-import 'package:ticketing_app/Widget/NavDrawer.dart';
+import 'package:ticketing_app/Screens/Journey/FinishScan.dart';
+import 'package:ticketing_app/Screens/Journey/ScanQR.dart';
+import 'package:ticketing_app/Screens/Common/NavDrawer.dart';
 import "dart:math";
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -105,7 +105,11 @@ class _LoginPageState extends State <LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return
+      new MediaQuery(
+        data: new MediaQueryData(),
+        child:MaterialApp(
+        home:Scaffold(
 
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -252,34 +256,6 @@ class _LoginPageState extends State <LoginPage> {
                         ),
                       ),
                     ),
-//                  Container(
-//                    height: 40.0,
-//                    child: Material(
-//                      borderRadius: BorderRadius.circular(20.0),
-//                      shadowColor: Colors.greenAccent,
-//                      color: Color.fromARGB(255, 182, 82, 80),
-//                      elevation: 7.0,
-//                      child: GestureDetector(
-//                        onTap: _emailController.text == "" || _passController.text ==""
-//                        ? null
-//                        :(){
-//                          setState(() {
-//                            _isloading = true;
-//                          });
-//                          signIn(_emailController.text, _passController.text);
-//                        },
-//                        child: Center(
-//                          child: Text(
-//                            'LOGIN',
-//                            style: TextStyle(
-//                                color: Colors.white,
-//                                fontWeight: FontWeight.bold,
-//                                fontFamily: 'Montserrat'),
-//                          ),
-//                        ),
-//                      ),
-//                    ),
-//                  ),
                     SizedBox(height: 20.0),
 
 
@@ -298,6 +274,7 @@ class _LoginPageState extends State <LoginPage> {
                 SizedBox(width: 5.0),
                 InkWell(
                   onTap: () {
+
                     Navigator.of(context).pushNamed('/signup');
                   },
                   child: Text(
@@ -316,6 +293,9 @@ class _LoginPageState extends State <LoginPage> {
         ),
       ),
       )
-    );
+    )
+    )
+      );
+
   }
 }
